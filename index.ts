@@ -90,7 +90,7 @@ app.get('/bg', async (req, res) => {
 		await tedis.set('refreshToken', response.data.refresh_token);
 
 		const current: Date = new Date();
-		const before: Date = new Date(current.getTime() - 5*60000);
+		const before: Date = new Date(current.getTime() - 5 * 60000);
 		const newCurrent: string = `${current.getFullYear()}-${
 			current.getMonth() < 10 ? '0' + current.getMonth() : current.getMonth()
 		}-${current.getDate() < 10 ? '0' + current.getDate() : current.getDate()}T${
