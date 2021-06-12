@@ -72,6 +72,7 @@ var tedis = new tedis_1.Tedis({
     host: process.env.REDIS_HOST,
     password: process.env.REDIS_PASSWORD,
 });
+var valid_keys = JSON.parse(process.env.API_KEYS);
 //Homepage to login
 app.get('/', function (req, res) {
     var redirectURI = encodeURIComponent(process.env.DEXCOM_REDIRECT_URI);
@@ -109,7 +110,6 @@ app.get('/oauth-redirect', function (req, res) { return __awaiter(void 0, void 0
                     })];
             case 1:
                 response = _a.sent();
-                console.log(response.data.refresh_token);
                 return [4 /*yield*/, tedis.set('refreshToken', response.data.refresh_token).catch(function (e) {
                         res.send('Error. Please login again for refresh token receiving.');
                         console.error(e);
@@ -123,13 +123,16 @@ app.get('/oauth-redirect', function (req, res) { return __awaiter(void 0, void 0
 }); });
 //The place to get your BG
 app.get('/bg', function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var refreshToken, options, response, accessToken, current, before, newCurrent, newBefore, url, bgOptions, bgResponse;
+    var api_key, refreshToken, options, response, accessToken, current, before, newCurrent, newBefore, url, bgOptions, bgResponse;
     return __generator(this, function (_a) {
         switch (_a.label) {
-            case 0: return [4 /*yield*/, tedis.get('refreshToken').catch(function (e) {
-                    res.send('Error. Please login again for refresh token getting.');
-                    console.error(e);
-                })];
+            case 0:
+                api_key = req.query.key;
+                if (!valid_keys.includes(api_key)) return [3 /*break*/, 5];
+                return [4 /*yield*/, tedis.get('refreshToken').catch(function (e) {
+                        res.send('Error. Please login again for refresh token getting.');
+                        console.error(e);
+                    })];
             case 1:
                 refreshToken = _a.sent();
                 options = {
@@ -159,7 +162,9 @@ app.get('/bg', function (req, res) { return __awaiter(void 0, void 0, void 0, fu
             case 3:
                 _a.sent();
                 current = new Date();
-                before = new Date(current.getTime() - 30 * 60000);
+                before = new Date(current.getTime() - 5 * 60000);
+                console.log(current);
+                console.log(before);
                 newCurrent = current.getFullYear() + "-" + (current.getMonth() < 10 ? '0' + current.getMonth() : current.getMonth()) + "-" + (current.getDate() < 10 ? '0' + current.getDate() : current.getDate()) + "T" + (current.getHours() < 10 ? '0' + current.getHours() : current.getHours()) + ":" + (current.getMinutes() < 10 ? '0' + current.getMinutes() : current.getMinutes()) + ":" + (current.getSeconds() < 10 ? '0' + current.getSeconds() : current.getSeconds());
                 newBefore = before.getFullYear() + "-" + (before.getMonth() < 10 ? '0' + before.getMonth() : before.getMonth()) + "-" + (before.getDate() < 10 ? '0' + before.getDate() : before.getDate()) + "T" + (before.getHours() < 10 ? '0' + before.getHours() : before.getHours()) + ":" + (before.getMinutes() < 10 ? '0' + before.getMinutes() : before.getMinutes()) + ":" + (before.getSeconds() < 10 ? '0' + before.getSeconds() : before.getSeconds());
                 url = "https://api.dexcom.com/v2/users/self/egvs?startDate=" + newBefore + "&endDate=" + newCurrent;
@@ -179,8 +184,12 @@ app.get('/bg', function (req, res) { return __awaiter(void 0, void 0, void 0, fu
             case 4:
                 bgResponse = _a.sent();
                 console.log(bgResponse.data.egvs);
-                res.send("" + bgResponse.data.egvs[0].value + bgResponse.data.unit);
-                return [2 /*return*/];
+                res.send(bgResponse.data.egvs[0].value + " " + bgResponse.data.unit);
+                return [3 /*break*/, 6];
+            case 5:
+                res.status(401).send('You do not have a valid API key.');
+                _a.label = 6;
+            case 6: return [2 /*return*/];
         }
     });
 }); });
