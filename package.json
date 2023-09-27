@@ -4,8 +4,8 @@
     "description": "",
     "main": "dist/index.js",
     "scripts": {
-        "start": "tsc --project ./ && bun .",
-        "build": "tsc --project ./"
+        "start": "tsc --build . && bun .",
+        "build": "tsc --build ."
     },
     "repository": {
         "type": "git",
