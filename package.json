@@ -4,7 +4,7 @@
     "description": "",
     "main": "dist/index.js",
     "scripts": {
-        "start": "tsc --build . && bun .",
+        "start": "tsc --build . && node .",
         "build": "tsc --build ."
     },
     "repository": {
