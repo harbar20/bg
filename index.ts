@@ -1,18 +1,35 @@
 //Importing required modules
 import express, { json } from "express";
+import * as dotenv from "dotenv";
 import axios, { AxiosRequestConfig } from "axios";
 import { Tedis } from "tedis";
+dotenv.config();
 
-declare module "bun" {
-    interface Env {
-        PORT: number;
-        DEXCOM_CLIENT_ID: string;
-        DEXCOM_CLIENT_SECRET: string;
-        DEXCOM_REDIRECT_URI: string;
-        REDIS_PORT: number;
-        REDIS_HOST: string;
-        REDIS_PASSWORD: string;
-        API_KEY: string;
+// declare module "bun" {
+//     interface Env {
+//         PORT: number;
+//         DEXCOM_CLIENT_ID: string;
+//         DEXCOM_CLIENT_SECRET: string;
+//         DEXCOM_REDIRECT_URI: string;
+//         REDIS_PORT: number;
+//         REDIS_HOST: string;
+//         REDIS_PASSWORD: string;
+//         API_KEY: string;
+//     }
+// }
+
+declare global {
+    namespace NodeJS {
+        interface ProcessEnv {
+            PORT: number;
+            DEXCOM_CLIENT_ID: string;
+            DEXCOM_CLIENT_SECRET: string;
+            DEXCOM_REDIRECT_URI: string;
+            REDIS_PORT: number;
+            REDIS_HOST: string;
+            REDIS_PASSWORD: string;
+            API_KEY: string;
+        }
     }
 }
 
@@ -27,14 +44,14 @@ interface DexcomOAuthResponse {
 const app = express();
 app.use(json());
 const tedis = new Tedis({
-    port: Number(Bun.env.REDIS_PORT),
-    host: Bun.env.REDIS_HOST,
-    password: Bun.env.REDIS_PASSWORD,
+    port: Number(process.env.REDIS_PORT),
+    host: process.env.REDIS_HOST,
+    password: process.env.REDIS_PASSWORD,
 });
-const valid_keys = Bun.env.API_KEY;
+const valid_keys = process.env.API_KEY;
 
-const redirectURI = encodeURIComponent(Bun.env.DEXCOM_REDIRECT_URI);
-const dexcomLogin = `<a href="https://api.dexcom.com/v2/oauth2/login?client_id=${Bun.env.DEXCOM_CLIENT_ID}&redirect_uri=${redirectURI}&response_type=code&scope=offline_access">here</a>`;
+const redirectURI = encodeURIComponent(process.env.DEXCOM_REDIRECT_URI);
+const dexcomLogin = `<a href="https://api.dexcom.com/v2/oauth2/login?client_id=${process.env.DEXCOM_CLIENT_ID}&redirect_uri=${redirectURI}&response_type=code&scope=offline_access">here</a>`;
 const reloginMessage = `Login ${dexcomLogin}`;
 
 //Homepage to login
@@ -62,11 +79,11 @@ app.get("/", async (req, res) => {
             // "User-Agent": "BG-Reader",
         },
         body: new URLSearchParams({
-            client_secret: Bun.env.DEXCOM_CLIENT_SECRET,
-            client_id: Bun.env.DEXCOM_CLIENT_ID,
+            client_secret: process.env.DEXCOM_CLIENT_SECRET,
+            client_id: process.env.DEXCOM_CLIENT_ID,
             refresh_token: refreshToken as string,
             grant_type: "refresh_token",
-            redirect_uri: Bun.env.DEXCOM_REDIRECT_URI,
+            redirect_uri: process.env.DEXCOM_REDIRECT_URI,
         }).toString(),
     };
     const response = await fetch(
@@ -149,11 +166,11 @@ app.get("/oauth-redirect", async (req, res) => {
 
     const code = req.query.code as string;
     const options = {
-        client_secret: Bun.env.DEXCOM_CLIENT_SECRET,
-        client_id: Bun.env.DEXCOM_CLIENT_ID,
+        client_secret: process.env.DEXCOM_CLIENT_SECRET,
+        client_id: process.env.DEXCOM_CLIENT_ID,
         code: code,
         grant_type: "authorization_code",
-        redirect_uri: Bun.env.DEXCOM_REDIRECT_URI,
+        redirect_uri: process.env.DEXCOM_REDIRECT_URI,
     };
 
     console.log(options);
@@ -181,8 +198,8 @@ app.get("/oauth-redirect", async (req, res) => {
     res.redirect(302, "/");
 });
 
-app.listen(Bun.env.PORT, () => {
-    console.log(`Running on http://localhost:${Bun.env.PORT}`);
+app.listen(process.env.PORT, () => {
+    console.log(`Running on http://localhost:${process.env.PORT}`);
 });
 
 process.on("uncaughtException", function (err) {
