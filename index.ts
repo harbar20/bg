@@ -33,13 +33,6 @@ declare global {
     }
 }
 
-interface DexcomOAuthResponse {
-    access_token: string;
-    expires_in: number;
-    token_type: string;
-    refresh_token: string;
-}
-
 //Doing required setup for the server to work
 const app = express();
 app.use(json());
@@ -100,39 +93,53 @@ app.get("/", async (req, res) => {
     const accessToken = data.access_token;
     await tedis.set("refreshToken", data.refresh_token);
 
-    const current: Date = new Date(
-        new Date().toLocaleString("en-US", { timeZone: "America/New_York" })
-    );
-    const before: Date = new Date(
-        new Date(current.getTime() - 5 * 60000).toLocaleString("en-US", {
-            timeZone: "America/New_York",
-        })
-    );
-    const newCurrent: string = `${current.getFullYear()}-${
-        current.getMonth() < 10 ? "0" + current.getMonth() : current.getMonth()
-    }-${current.getDate() < 10 ? "0" + current.getDate() : current.getDate()}T${
-        current.getHours() < 10 ? "0" + current.getHours() : current.getHours()
+    const current: Date = new Date(Date.now());
+    const before: Date = new Date(Date.now() - 2 * 24 * 60 * 60 * 1000);
+
+    console.log(current);
+    console.log(before);
+
+    const newCurrent: string = `${current.getUTCFullYear()}-${
+        current.getUTCMonth() + 1 < 10
+            ? "0" + (current.getUTCMonth() + 1)
+            : current.getUTCMonth() + 1
+    }-${
+        current.getUTCDate() < 10
+            ? "0" + current.getUTCDate()
+            : current.getUTCDate()
+    }T${
+        current.getUTCHours() < 10
+            ? "0" + current.getUTCHours()
+            : current.getUTCHours()
     }:${
-        current.getMinutes() < 10
-            ? "0" + current.getMinutes()
-            : current.getMinutes()
+        current.getUTCMinutes() < 10
+            ? "0" + current.getUTCMinutes()
+            : current.getUTCMinutes()
     }:${
-        current.getSeconds() < 10
-            ? "0" + current.getSeconds()
-            : current.getSeconds()
+        current.getUTCSeconds() < 10
+            ? "0" + current.getUTCSeconds()
+            : current.getUTCSeconds()
     }`;
-    const newBefore: string = `${before.getFullYear()}-${
-        before.getMonth() < 10 ? "0" + before.getMonth() : before.getMonth()
-    }-${before.getDate() < 10 ? "0" + before.getDate() : before.getDate()}T${
-        before.getHours() < 10 ? "0" + before.getHours() : before.getHours()
+    const newBefore: string = `${before.getUTCFullYear()}-${
+        before.getUTCMonth() + 1 < 10
+            ? "0" + (before.getUTCMonth() + 1)
+            : before.getUTCMonth() + 1
+    }-${
+        before.getUTCDate() < 10
+            ? "0" + before.getUTCDate()
+            : before.getUTCDate()
+    }T${
+        before.getUTCHours() < 10
+            ? "0" + before.getUTCHours()
+            : before.getUTCHours()
     }:${
-        before.getMinutes() < 10
-            ? "0" + before.getMinutes()
-            : before.getMinutes()
+        before.getUTCMinutes() < 10
+            ? "0" + before.getUTCMinutes()
+            : before.getUTCMinutes()
     }:${
-        before.getSeconds() < 10
-            ? "0" + before.getSeconds()
-            : before.getSeconds()
+        before.getUTCSeconds() < 10
+            ? "0" + before.getUTCSeconds()
+            : before.getUTCSeconds()
     }`;
 
     const url = `https://api.dexcom.com/v3/users/self/egvs?startDate=${newBefore}&endDate=${newCurrent}`;
@@ -152,6 +159,11 @@ app.get("/", async (req, res) => {
     if (!bgResponse) return res.send(reloginMessage);
 
     const bgData = await bgResponse.json();
+
+    if (bgData.errors) {
+        console.log(bgData);
+        return res.send("Invalid date");
+    }
 
     const currentValue = bgData.records[0];
     res.send(currentValue);
