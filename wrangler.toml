@@ -1,0 +1,24 @@
+name = "bg"
+compatibility_date = "2023-12-01"
+
+# [vars]
+# MY_VAR = "my-variable"
+
+[site]
+bucket = "./assets"
+
+[[kv_namespaces]]
+binding = "refresh_tokens"
+id = "965c71e1e2fd47c5abb4c0c4ed62dbc4"
+
+# [[r2_buckets]]
+# binding = "MY_BUCKET"
+# bucket_name = "my-bucket"
+
+# [[d1_databases]]
+# binding = "DB"
+# database_name = "my-database"
+# database_id = ""
+
+# [ai]
+# binding = "AI"
