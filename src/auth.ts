@@ -39,8 +39,6 @@ async function token(c: Context) {
     if (!response) return message(c.env);
     const data: any = await response.json();
 
-    console.log(data);
-
     const accessToken = data.access_token;
     await c.env.refresh_tokens.put("token", data.refresh_token);
 
@@ -50,8 +48,6 @@ async function token(c: Context) {
 async function get(accessToken: string) {
     const current: Date = new Date(Date.now());
     const before: Date = new Date(Date.now() - 2 * 24 * 60 * 60 * 1000);
-
-    console.log(accessToken);
 
     const newCurrent: string = `${current.getUTCFullYear()}-${
         current.getUTCMonth() + 1 < 10
@@ -111,15 +107,11 @@ async function get(accessToken: string) {
     });
     if (!bgResponse) return "BG error";
 
-    console.log(bgResponse);
-
     const bgData: any = await bgResponse.json();
 
     if (bgData.errors) {
         return "Invalid date";
     }
-
-    console.log(bgData);
 
     const currentValue = bgData.records[0];
 
@@ -164,7 +156,7 @@ async function auth(c: Context) {
 
     await c.env.refresh_tokens.put("token", data.refresh_token);
 
-    c.redirect("/", 302);
+    return c.redirect("/", 302);
 }
 
 export { token, get, auth };
