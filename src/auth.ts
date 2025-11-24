@@ -36,7 +36,8 @@ async function token(c: Context) {
         console.error(e);
         return;
     });
-    if (!response) return message(c.env);
+    if (!response || response.status !== 200) return message(c.env);
+
     const data: any = await response.json();
 
     const accessToken = data.access_token;

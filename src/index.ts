@@ -15,8 +15,6 @@ app.get("/", async (c) => {
 
     const res = await get(t);
 
-    console.log(res);
-
     return c.json(res);
 });
 
